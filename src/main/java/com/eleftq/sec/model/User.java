@@ -16,15 +16,12 @@ public class User {
     private String password;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "role_id")
+    @JoinColumn(name = "role_id" , nullable = false)
     private Role role;
 
-    // ✅ Constructeur par défaut
     public User() {}
 
-    // ✅ Constructeur avec paramètres
-    public User(Long id, String username, String password, Role role) {
-        this.id = id;
+    public User( String username, String password, Role role) {
         this.username = username;
         this.password = password;
         this.role = role;
@@ -66,13 +63,11 @@ public class User {
 
     // ✅ Builder manuel
     public static class Builder {
-        private Long id;
         private String username;
         private String password;
         private Role role;
 
         public Builder id(Long id) {
-            this.id = id;
             return this;
         }
 
@@ -92,7 +87,7 @@ public class User {
         }
 
         public User build() {
-            return new User(id, username, password, role);
+            return new User(username, password, role);
         }
     }
 

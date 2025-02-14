@@ -3,11 +3,8 @@ package com.eleftq.sec.controller;
 import com.eleftq.sec.dto.JwtResponse;
 import com.eleftq.sec.dto.LoginRequest;
 import com.eleftq.sec.dto.SignupRequest;
-import com.eleftq.sec.model.ERole;
-import com.eleftq.sec.model.Role;
-import com.eleftq.sec.model.User;
-import com.eleftq.sec.repository.RoleRepository;
-import com.eleftq.sec.repository.UserRepository;
+import org.springframework.security.core.GrantedAuthority;
+import com.eleftq.sec.security.services.UserDetailsImpl;
 import com.eleftq.sec.service.AuthService;
 import com.eleftq.sec.util.JwtUtils;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -50,11 +48,22 @@ public class AuthController {
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.username(), loginRequest.password()));
+
         SecurityContextHolder.getContext().setAuthentication(authentication);
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         String jwt = jwtUtils.generateJwtToken(authentication);
 
-        return ResponseEntity.ok(new JwtResponse(jwt));
+        JwtResponse jwtResponse = new JwtResponse(
+                jwt,
+                userDetails.getUsername(),
+                userDetails.getRole(),
+                userDetails.getPermissions()
+        );
+
+        return ResponseEntity.ok(jwtResponse);
     }
+
+
 
 
     @PostMapping("/signup")

@@ -1,15 +1,6 @@
 package com.eleftq.sec.dto;
 
 import java.util.List;
+import java.util.Set;
 
-public record JwtResponse(
-        String token,
-        String type,
-        Long id,
-        String username,
-        List<String> roles
-) {
-    public JwtResponse(String token) {
-        this(token, "Bearer", null, null, null);
-    }
-}
+public record JwtResponse(String token, String username, String role , Set<String> permissions) {}

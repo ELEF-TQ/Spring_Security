@@ -21,7 +21,6 @@ public class AuthService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // Constructor-based dependency injection
     public AuthService(
             UserRepository userRepository,
             RoleRepository roleRepository,

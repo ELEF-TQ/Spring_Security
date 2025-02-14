@@ -24,22 +24,26 @@ public class JwtUtils {
     @Value("${app.jwt.expiration.ms}")
     private int jwtExpirationMs;
 
-    public JwtUtils(@Value("${app.jwt.secret}") String base64Secret) {
-        // Decode Base64 string to byte array
-        byte[] keyBytes = Decoders.BASE64.decode(base64Secret);
+    private static final int REQUIRED_KEY_LENGTH = 64;
 
-        // Create HMAC key
-        this.jwtSecret = Keys.hmacShaKeyFor(keyBytes);
-
-        // Build JWT parser
-        this.jwtParser = Jwts.parser()
-                .verifyWith(jwtSecret)
-                .build();
+    public JwtUtils(@Value("${app.jwt.secret}") String base64Secret, @Value("${app.jwt.expiration.ms}") int jwtExpirationMs) {
+        try {
+            byte[] keyBytes = Decoders.BASE64.decode(base64Secret);
+            if (keyBytes.length != REQUIRED_KEY_LENGTH) {
+                throw new IllegalArgumentException("Invalid key size");
+            }
+            this.jwtSecret = Keys.hmacShaKeyFor(keyBytes);
+            this.jwtParser = Jwts.parser()
+                    .verifyWith(jwtSecret)
+                    .build();
+            this.jwtExpirationMs = jwtExpirationMs;
+        } catch (Exception e) {
+            throw new RuntimeException("JWT initialization failed", e);
+        }
     }
 
     public String generateJwtToken(Authentication authentication) {
         UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
-
         return Jwts.builder()
                 .subject(userPrincipal.getUsername())
                 .issuedAt(new Date())

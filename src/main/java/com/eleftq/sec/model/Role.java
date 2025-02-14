@@ -23,10 +23,16 @@ public class Role {
     )
     private Set<Permission> permissions = new HashSet<>();
 
+
     public Role() {}
 
     public Role(ERole name) {
         this.name = name;
+    }
+
+    public Role(ERole roleName, Set<Permission> permissions) {
+        this.name = roleName ;
+        this.permissions = permissions ;
     }
 
     public Integer getId() {

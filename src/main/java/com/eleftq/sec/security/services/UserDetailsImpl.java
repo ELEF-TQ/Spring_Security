@@ -1,46 +1,65 @@
 package com.eleftq.sec.security.services;
 
 import com.eleftq.sec.model.User;
+import com.eleftq.sec.model.Permission;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 public class UserDetailsImpl implements UserDetails {
-    private static final long serialVersionUID = 1L;
-    private Long id;
-    private String username;
-    private String password;
-    private Collection<? extends GrantedAuthority> authorities;
+    private final String username;
+    private final String password;
+    private final String role;
+    private final Set<String> permissions;
+    private final Collection<? extends GrantedAuthority> authorities;
 
-    public UserDetailsImpl(Long id, String username, String password,
-                           Collection<? extends GrantedAuthority> authorities) {
-        this.id = id;
+    public UserDetailsImpl(String username, String password, String role, Set<String> permissions, Collection<? extends GrantedAuthority> authorities) {
         this.username = username;
         this.password = password;
+        this.role = role;
+        this.permissions = permissions;
         this.authorities = authorities;
     }
 
-    public static UserDetailsImpl build(User user) {
-        List<GrantedAuthority> authorities = user.getRole() != null
-                ? user.getRole().getPermissions().stream()
-                .map(permission -> new SimpleGrantedAuthority(permission.getName()))
-                .collect(Collectors.toList())
-                : Collections.emptyList();
-
-        return new UserDetailsImpl(
-                user.getId(),
-                user.getUsername(),
-                user.getPassword(),
-                authorities);
+    public String getRole() {
+        return role;
     }
 
+    public Set<String> getPermissions() {
+        return permissions;
+    }
 
-    // Implement all UserDetails methods
+    public static UserDetailsImpl build(User user) {
+        String roleName = String.valueOf(user.getRole().getName());
+        Set<String> permissions = user.getRole().getPermissions().stream()
+                .map(Permission::getName)
+                .collect(Collectors.toSet());
+
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        // Add the role as a granted authority with the "ROLE_" prefix
+        authorities.add(new SimpleGrantedAuthority("ROLE_" + roleName));
+        // Also add each permission as a granted authority
+        authorities.addAll(
+                permissions.stream()
+                        .map(SimpleGrantedAuthority::new)
+                        .toList()
+        );
+
+        return new UserDetailsImpl(
+                user.getUsername(),
+                user.getPassword(),
+                roleName,
+                permissions,
+                authorities
+        );
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return authorities;
