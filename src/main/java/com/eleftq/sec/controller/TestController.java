@@ -21,7 +21,7 @@ public class TestController {
     }
 
     @GetMapping("/user")
-    @PreAuthorize("hasRole('USER') or hasRole('MODERATOR') or hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_USER') or hasAuthority('ROLE_MODERATOR')")
     public ResponseEntity<Map<String, String>> userAccess() {
         Map<String, String> response = new HashMap<>();
         response.put("message", "User Content.");
@@ -29,7 +29,7 @@ public class TestController {
     }
 
     @GetMapping("/admin")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<Map<String, String>> adminAccess() {
         Map<String, String> response = new HashMap<>();
         response.put("message", "Admin Board.");

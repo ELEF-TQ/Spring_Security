@@ -36,20 +36,30 @@ public class UserDetailsImpl implements UserDetails {
     }
 
     public static UserDetailsImpl build(User user) {
+        // Get role name from your User entity.
         String roleName = String.valueOf(user.getRole().getName());
+
+        // Ensure that the role authority has the proper "ROLE_" prefix.
+        String roleAuthority = roleName.startsWith("ROLE_") ? roleName : "ROLE_" + roleName;
+
+        // Convert permissions to a set of strings.
         Set<String> permissions = user.getRole().getPermissions().stream()
                 .map(Permission::getName)
                 .collect(Collectors.toSet());
 
+        // Build the authorities list by first adding the role.
         List<GrantedAuthority> authorities = new ArrayList<>();
-        // Add the role as a granted authority with the "ROLE_" prefix
-        authorities.add(new SimpleGrantedAuthority("ROLE_" + roleName));
-        // Also add each permission as a granted authority
+        authorities.add(new SimpleGrantedAuthority(roleAuthority));
+
+        // Then add all the permissions as authorities.
         authorities.addAll(
                 permissions.stream()
                         .map(SimpleGrantedAuthority::new)
-                        .toList()
+                        .collect(Collectors.toList())
         );
+
+        // (Optional) Log the authorities for debugging
+        System.out.println("User: " + user.getUsername() + " Authorities: " + authorities);
 
         return new UserDetailsImpl(
                 user.getUsername(),
